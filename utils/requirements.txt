@@ -120,7 +120,6 @@ openpyxl==2.5.3
 packaging==17.1
 pandas==0.23.0
 pandocfilters==1.4.2
-parso==0.2.0
 partd==0.3.8
 path.py==11.0.1
 pathlib2==2.3.2
@@ -138,7 +137,6 @@ py==1.5.3
 pycodestyle==2.4.0
 pycosat==0.6.3
 pycparser==2.18
-pycrypto==2.6.1
 pycurl==7.43.0.1
 pyflakes==1.6.0
 Pygments==2.2.0
