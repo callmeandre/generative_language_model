@@ -3,4 +3,5 @@ utils/__pycache__/functions.cpython-36.pyc
 data/database.sqlite
 data/reddit_comments-may-2015.zip
 data/reddit_comments-may-2015.7z
+reddit_extracted_data.csv
 .ipynb_checkpoints/
