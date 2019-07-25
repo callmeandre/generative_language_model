@@ -46,4 +46,11 @@ def add_percentile_lines(df_data, ax, percentile, y_loc=800, spacer=5):
     ax.text(x=val+spacer, y=y_loc, fontsize=12,s='%sperc: %s' % (percentile, round(val).astype(int)))
     return ax
     
+def add_all_percentiles(perc_list, df_data, ax, drop, y_loc=800, spacer=5):
+    for itm in perc_list:
+        ax = add_percentile_lines(df_data, ax, itm, y_loc, spacer)
+        y_loc = y_loc - drop
+        
+    return ax
+    
     
