@@ -40,3 +40,10 @@ def read_and_process_data(path, workDir):
 
     return df_merge
     
+def add_percentile_lines(df_data, ax, percentile, y_loc=800, spacer=5):
+    val = np.percentile(df_data, percentile)
+    ax.axvline(val, color='k', linestyle='dashed', linewidth=1)
+    ax.text(x=val+spacer, y=y_loc, fontsize=12,s='%sperc: %s' % (percentile, round(val).astype(int)))
+    return ax
+    
+    
