@@ -78,4 +78,21 @@ def post_and_reply_length(df_data, post='parent_body', reply='body', cap=500):
     plt.suptitle("Comparing Post Word Count by Type", y=1.03, verticalalignment='top', fontsize = 20)
     plt.tight_layout()
     
+def ups_and_downs(df_data, ups='ups', downs='downs', cap=500):
+    
+    df_data['ups_cap'] = df_data[ups].apply(lambda x: capping_length(x, cap))
+    df_data['downs_cap'] = df_data[downs].apply(lambda x: capping_length(x, cap))
+    
+    fig, axs = plt.subplots(2, 1, sharey=True, figsize=(15, 10))
+    
+    axs[0].hist(df_data['ups_cap'], bins=100, color = "royalblue")
+    axs[0].title.set_text('%s for Post Capped at %s Words' % (str.title(ups),cap))
+    axs[0] = add_all_percentiles([50, 75, 90, 95, 99], df_data[ups].astype(int), axs[0], 500, 2500, spacer=1)
+    axs[1].hist(df_data['downs_cap'], bins=100, color = "peachpuff")
+    axs[1].title.set_text('%s for Post Capped at %s Words' % (str.title(downs), cap))
+    axs[1] = add_all_percentiles([50, 75, 90, 95, 99], df_data[downs].astype(int), axs[1], 500, 2500, spacer=1)
+    
+    plt.suptitle("Comparing Polarity of Posts", y=1.03, verticalalignment='top', fontsize = 20)
+    plt.tight_layout()
+    
     
