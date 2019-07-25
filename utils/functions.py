@@ -21,6 +21,7 @@ from keras import optimizers, backend
 from keras.models import load_model
 import time
 import pickle
+import os
 
 #####################################
 # functions
