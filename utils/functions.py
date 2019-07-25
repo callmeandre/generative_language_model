@@ -27,4 +27,16 @@ import os
 # functions
 #####################################
 
+def read_and_process_data(path, workDir):
+    df_full = pd.read_csv(os.path.join(workDir, "data", path))
+    df_full = df_full[df_full.name.notnull()]
+    df_full.body = df_full.body.str.lower()
 
+    df_parent = df_full[['body', 'name']].drop_duplicates()
+    df_parent = df_parent.rename({'body':'parent_body', 'name' : 'parent_id'}, axis='columns')
+
+    df_merge = df_parent.merge(df_full.drop('link_id', axis=1), on='parent_id', how='inner')
+    df_merge = df_merge[(df_merge.body != '[deleted]') & (df_merge.parent_body != '[deleted]')]
+
+    return df_merge
+    
