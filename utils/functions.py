@@ -58,4 +58,24 @@ def capping_length(val, length):
     else: new_val = val
     return int(new_val)
 
+def post_and_reply_length(df_data, post='parent_body', reply='body', cap=500):
+    
+    df_data['parent_length'] = df_data[post].apply(lambda x:len(x.split())) 
+    df_data['length'] = df_data[reply].apply(lambda x:len(x.split())) 
+    
+    df_data['parent_length_cap'] = df_data['parent_length'].apply(lambda x: capping_length(x, cap))
+    df_data['length_cap'] = df_data['length'].apply(lambda x: capping_length(x, cap))
+    
+    fig, axs = plt.subplots(2, 1, sharey=True, figsize=(15, 10))
+
+    axs[0].hist(df_data['parent_length_cap'], bins=100, color = "royalblue")
+    axs[0].title.set_text('Parent Post Length Capped at %s Words' % (cap))
+    axs[0] = add_all_percentiles([50, 75, 90, 95, 99], df_data['parent_length'], axs[0], 50, 800)
+    axs[1].hist(df_data['length_cap'], bins=100, color = "peachpuff")
+    axs[1].title.set_text('Reply Length Capped at %s Words' % (cap))
+    axs[1] = add_all_percentiles([50, 75, 90, 95, 99], df_data['length'], axs[1], 50, 800)
+    
+    plt.suptitle("Comparing Post Word Count by Type", y=1.03, verticalalignment='top', fontsize = 20)
+    plt.tight_layout()
+    
     
