@@ -53,4 +53,9 @@ def add_all_percentiles(perc_list, df_data, ax, drop, y_loc=800, spacer=5):
         
     return ax
     
+def capping_length(val, length):
+    if int(val) > length: new_val = length
+    else: new_val = val
+    return int(new_val)
+
     
