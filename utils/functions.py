@@ -22,10 +22,132 @@ from keras.models import load_model
 import time
 import pickle
 import os
+import sqlite3
+import re
+from unicodedata import normalize
 
 #####################################
 # functions
 #####################################
+
+#####
+# for data import & preprocessing
+#####
+
+def create_connection(db):
+    """ connect to a sqlite database
+    :param db: database file
+    :return: a sqlite db connection object, 
+      none if error
+    """
+    try:
+        conn = sqlite3.connect(db)
+        return conn
+    except Error as e:
+        print(e)
+ 
+    return None
+
+def _include_parents(df, db):
+    """ for a given sample of posts, 
+      make sure their parent post is
+      included in the sample, and remove
+      any duplicates.
+    
+    :param df: dataframe with samples
+    :param db: a sqlite db connection object
+    :return comp_df: a dataframe complete with
+      original posts and their parents
+    """
+    
+    unique_parent_ids_in_df = set(df.parent_id.unique())
+    
+    sample_parents_sql = "SELECT subreddit, ups, downs, score, body, link_id, id, parent_id, name \
+      FROM May2015 \
+      WHERE name IN ('{}') \
+      ;".format("', '".join(unique_parent_ids_in_df))
+    sample_parents_df = pd.read_sql(sample_parents_sql, db)
+
+    # since some parents might already be included, drop duplicates
+    comp_df = pd.concat([df, sample_parents_df]).drop_duplicates().reset_index(drop=True)
+    
+    return(comp_df)
+
+def _basic_preprocessing(post):
+    """ basic text preprocessing 
+    
+    :param post: a social media post, or 
+      other similar text input
+    :return pp_post: a preprocessed post,
+      with non-ASCII values, special characters,
+      leading/trailing whitespace removed,
+      normalized characters, and lowercase
+    """
+    pp_post = re.sub(r'[^\w\s]', '', post)
+    pp_post = re.sub(r'[^\x00-\x7F]', '', pp_post)
+    pp_post = re.sub(r'\n', '', pp_post)
+    pp_post = pp_post.strip().lower()
+    pp_post = normalize('NFKD', pp_post).encode('ascii', 'ignore').decode('utf8')
+    
+    return(pp_post)
+
+def get_sample(nrows, db):
+    """ extract a random sample of rows from
+      the reddit comments dataset, including
+      comment's parent comment where applicable,
+      and with some basic preprocessing
+    
+    :param nrows: number of rows to sample
+    :param table: table we will sample from
+    :param db: a database connection object
+    :return df: a deduped dataframe including
+      sampled posts and their parent
+    """
+    
+    # get total rows & use to compute percentage sample that will get nrows
+    total_rows = pd.read_sql_query("SELECT COUNT(*) FROM May2015;", db).iloc[0,0]
+    sample_percentage = nrows/total_rows
+    
+    sample_sql = "SELECT subreddit, ups, downs, score, body, link_id, id, parent_id, name \
+                  FROM May2015 \
+                  WHERE ABS(CAST(RANDOM() AS REAL))/9223372036854775808 < {} \
+                 ;".format(sample_percentage)
+    sample_df = pd.read_sql(sample_sql, db)
+    
+    # make sure dataset include post parents
+    complete_df = _include_parents(sample_df, db)
+    
+    # do some pre-processing
+    complete_df['body'] = complete_df['body'].apply(_basic_preprocessing)
+    
+    return(complete_df)
+
+def remove_duplicates(df, existing_ids):
+    """ remove duplicates from subsequent 
+      sample chunks
+    
+    :param df: new dataframe that (presumably)
+      contains duplicates
+    :param existing_indices: unique identifiers
+      already in our sample set.
+    :return deduped_df: dataframe with dupes removed
+    :return all_unique_ids: list of ids including
+      unique ones from passed dataframe
+    """
+
+    unique_ids_in_df = set(df.id.unique())
+    
+    dupe_indices = existing_ids.intersection(unique_ids_in_df)
+    non_dupes = ~df.id.isin(dupe_indices)
+    deduped_df = df[non_dupes]
+
+    all_unique_ids = existing_indices.union(unique_ids_in_df)
+    
+    return(deduped_df, all_unique_ids)
+
+#####
+# main notebook
+#####
 
 def read_and_process_data(path, workDir):
     df_full = pd.read_csv(os.path.join(workDir, "data", path))
