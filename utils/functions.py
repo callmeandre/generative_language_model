@@ -191,6 +191,9 @@ def capping_length(val, length):
 
 def post_and_reply_length(df_data, post='parent_body', reply='body', cap=500):
     
+    df_data[post] = df_data[post].astype(str)
+    df_data[reply] = df_data[reply].astype(str)
+    
     df_data['parent_length'] = df_data[post].apply(lambda x:len(x.split())) 
     df_data['length'] = df_data[reply].apply(lambda x:len(x.split())) 
     
