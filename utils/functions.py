@@ -157,15 +157,17 @@ def remove_duplicates(df, existing_ids):
 #####
 
 def read_and_process_data(path, workDir):
-    df_full = pd.read_csv(os.path.join(workDir, "data", path))
-    df_full = df_full[df_full.name.notnull()]
+    df_full = pd.read_csv(os.path.join(workDir, "data", path), engine='python')
+    df_full = df_full[df_full.id.notnull()]
     df_full.body = df_full.body.str.lower()
 
-    df_parent = df_full[['body', 'name']].drop_duplicates()
-    df_parent = df_parent.rename({'body':'parent_body', 'name' : 'parent_id'}, axis='columns')
+    df_parent = df_full[['body', 'id']].drop_duplicates()
+    df_parent = df_parent.rename({'body':'parent_body', 'id' : 'parent_id'}, axis='columns')
 
     df_merge = df_parent.merge(df_full.drop('link_id', axis=1), on='parent_id', how='inner')
     df_merge = df_merge[(df_merge.body != '[deleted]') & (df_merge.parent_body != '[deleted]')]
+    
+    df_merge['is_popular'] = df_merge['score'].apply(lambda x: is_popular(x, 15))
 
     return df_merge
     
@@ -199,10 +201,10 @@ def post_and_reply_length(df_data, post='parent_body', reply='body', cap=500):
 
     axs[0].hist(df_data['parent_length_cap'], bins=100, color = "royalblue")
     axs[0].title.set_text('Parent Post Length Capped at %s Words' % (cap))
-    axs[0] = add_all_percentiles([50, 75, 90, 95, 99], df_data['parent_length'], axs[0], 50, 800)
+    axs[0] = add_all_percentiles([50, 75, 90, 95, 97.5, 99], df_data['parent_length'], axs[0], 50, 800)
     axs[1].hist(df_data['length_cap'], bins=100, color = "peachpuff")
     axs[1].title.set_text('Reply Length Capped at %s Words' % (cap))
-    axs[1] = add_all_percentiles([50, 75, 90, 95, 99], df_data['length'], axs[1], 50, 800)
+    axs[1] = add_all_percentiles([50, 75, 90, 95, 97.5, 99], df_data['length'], axs[1], 50, 800)
     
     plt.suptitle("Comparing Post Word Count by Type", y=1.03, verticalalignment='top', fontsize = 20)
     plt.tight_layout()
@@ -216,12 +218,16 @@ def ups_and_downs(df_data, ups='ups', downs='downs', cap=500):
     
     axs[0].hist(df_data['ups_cap'], bins=100, color = "royalblue")
     axs[0].title.set_text('%s for Post Capped at %s Words' % (str.title(ups),cap))
-    axs[0] = add_all_percentiles([50, 75, 90, 95, 99], df_data[ups].astype(int), axs[0], 500, 2500, spacer=1)
+    axs[0] = add_all_percentiles([50, 75, 90, 95, 97.5, 99], df_data[ups].astype(int), axs[0], 500, 2500, spacer=1)
     axs[1].hist(df_data['downs_cap'], bins=100, color = "peachpuff")
     axs[1].title.set_text('%s for Post Capped at %s Words' % (str.title(downs), cap))
-    axs[1] = add_all_percentiles([50, 75, 90, 95, 99], df_data[downs].astype(int), axs[1], 500, 2500, spacer=1)
+    axs[1] = add_all_percentiles([50, 75, 90, 95, 97.5, 99], df_data[downs].astype(int), axs[1], 500, 2500, spacer=1)
     
     plt.suptitle("Comparing Polarity of Posts", y=1.03, verticalalignment='top', fontsize = 20)
     plt.tight_layout()
     
-    
+def is_popular(val, threshold):
+    if int(val) > threshold: new_val = 1
+    else: new_val = 0
+    return int(new_val)
+
