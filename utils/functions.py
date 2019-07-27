@@ -161,7 +161,7 @@ def remove_duplicates(df, existing_ids):
 #####
 
 def read_and_process_data(path, workDir):
-    df_full = pd.read_csv(os.path.join(workDir, "data", path))
+    df_full = pd.read_csv(os.path.join(workDir, "data", path), engine='python')
     df_full = df_full[df_full.name.notnull()]
     df_full.body = df_full.body.str.lower()
 
