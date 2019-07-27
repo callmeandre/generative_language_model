@@ -62,9 +62,10 @@ def _include_parents(df, db):
     
     unique_parent_ids_in_df = set(df.parent_id.unique())
     
-    sample_parents_sql = "SELECT subreddit, ups, downs, score, body, link_id, id, parent_id, name \
+    sample_parents_sql = "SELECT subreddit, ups, downs, score, body, id, name, link_id, parent_id \
       FROM May2015 \
-      WHERE name IN ('{}') \
+      WHERE subreddit != '' AND body != '' AND id != '' AND \
+      id IN ('{}') \
       ;".format("', '".join(unique_parent_ids_in_df))
     sample_parents_df = pd.read_sql(sample_parents_sql, db)
 
@@ -83,7 +84,7 @@ def _basic_preprocessing(post):
       leading/trailing whitespace removed,
       normalized characters, and lowercase
     """
-    pp_post = re.sub(r'[^\w\s]', '', post)
+    # pp_post = re.sub(r'[?|$|&|*|%|@|(|)|~|!]', '', post)
     pp_post = re.sub(r'[^\x00-\x7F]', '', pp_post)
     pp_post = re.sub(r'\n', '', pp_post)
     pp_post = pp_post.strip().lower()
@@ -105,12 +106,14 @@ def get_sample(nrows, db):
     """
     
     # get total rows & use to compute percentage sample that will get nrows
-    total_rows = pd.read_sql_query("SELECT COUNT(*) FROM May2015;", db).iloc[0,0]
+    total_rows = pd.read_sql_query("SELECT COUNT(*) FROM May2015 WHERE subreddit != '' AND body != '' AND id != '';", db).iloc[0,0]
+    print("total rows", total_rows)
     sample_percentage = nrows/total_rows
     
-    sample_sql = "SELECT subreddit, ups, downs, score, body, link_id, id, parent_id, name \
+    sample_sql = "SELECT subreddit, ups, downs, score, body, id, name, link_id, parent_id \
                   FROM May2015 \
-                  WHERE ABS(CAST(RANDOM() AS REAL))/9223372036854775808 < {} \
+                  WHERE subreddit != '' AND body != '' AND id != '' AND \
+                  ABS(CAST(RANDOM() AS REAL))/9223372036854775808 < {} \
                  ;".format(sample_percentage)
     sample_df = pd.read_sql(sample_sql, db)
     
@@ -119,6 +122,7 @@ def get_sample(nrows, db):
     
     # do some pre-processing
     complete_df['body'] = complete_df['body'].apply(_basic_preprocessing)
+    complete_df['parent_id'] = complete_df['parent_id'].apply(lambda x: re.sub(r't\d_', '', x))
     
     return(complete_df)
 
