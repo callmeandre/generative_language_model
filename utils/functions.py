@@ -67,11 +67,11 @@ def _include_parents(df, db):
       WHERE subreddit != '' AND body != '' AND id != '' AND \
       id IN ('{}') \
       ;".format("', '".join(unique_parent_ids_in_df))
+
     sample_parents_df = pd.read_sql(sample_parents_sql, db)
 
-    # since some parents might already be included, drop duplicates
+    # since some parents might already be included, drop
     comp_df = pd.concat([df, sample_parents_df]).drop_duplicates().reset_index(drop=True)
-    
     return(comp_df)
 
 def _basic_preprocessing(post):
@@ -84,12 +84,12 @@ def _basic_preprocessing(post):
       leading/trailing whitespace removed,
       normalized characters, and lowercase
     """
-    # pp_post = re.sub(r'[?|$|&|*|%|@|(|)|~|!]', '', post)
+    
+    pp_post = re.sub(r'[^\w\s\']', '', post)
     pp_post = re.sub(r'[^\x00-\x7F]', '', pp_post)
     pp_post = re.sub(r'\n', '', pp_post)
     pp_post = pp_post.strip().lower()
     pp_post = normalize('NFKD', pp_post).encode('ascii', 'ignore').decode('utf8')
-    
     return(pp_post)
 
 def get_sample(nrows, db):
@@ -106,23 +106,30 @@ def get_sample(nrows, db):
     """
     
     # get total rows & use to compute percentage sample that will get nrows
-    total_rows = pd.read_sql_query("SELECT COUNT(*) FROM May2015 WHERE subreddit != '' AND body != '' AND id != '';", db).iloc[0,0]
-    print("total rows", total_rows)
-    sample_percentage = nrows/total_rows
+    # total_rows = pd.read_sql_query("SELECT COUNT(*) FROM May2015 WHERE subreddit != '' AND body != '' AND id != '';", db).iloc[0,0]
+    # hardcoded to save a trip to the DB
+    sample_percentage = nrows/54000000
     
     sample_sql = "SELECT subreddit, ups, downs, score, body, id, name, link_id, parent_id \
                   FROM May2015 \
                   WHERE subreddit != '' AND body != '' AND id != '' AND \
                   ABS(CAST(RANDOM() AS REAL))/9223372036854775808 < {} \
                  ;".format(sample_percentage)
+    print("querying for sample")
     sample_df = pd.read_sql(sample_sql, db)
+    print("query for sample finished")
     
     # make sure dataset include post parents
+    print("getting parents")
     complete_df = _include_parents(sample_df, db)
+    print("getting parents completed")
     
     # do some pre-processing
+    print("basic preprocessing")
     complete_df['body'] = complete_df['body'].apply(_basic_preprocessing)
+    print("converting parent ids")
     complete_df['parent_id'] = complete_df['parent_id'].apply(lambda x: re.sub(r't\d_', '', x))
+    print("we done")
     
     return(complete_df)
 
