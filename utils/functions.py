@@ -231,7 +231,7 @@ def is_popular(val, threshold):
     else: new_val = 0
     return int(new_val)
 
-def create_labeled_data(df, text_col='parent_body', max_seq_length=150, predict_feature='is_popular')
+def create_labeled_data(df, text_col='parent_body', max_seq_length=150, predict_feature='is_popular'):
   train_text = df[text_col].tolist()
   train_text = [' '.join(t.split()[0:max_seq_length]) for t in train_text]
   train_text = np.array(train_text, dtype=object)[:, np.newaxis]
