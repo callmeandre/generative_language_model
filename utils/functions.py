@@ -165,7 +165,7 @@ def read_and_process_data(path, workDir):
     df_parent = df_parent.rename({'body':'parent_body', 'id' : 'parent_id'}, axis='columns')
 
     df_merge = df_parent.merge(df_full.drop('link_id', axis=1), on='parent_id', how='inner')
-    df_merge = df_merge[(df_merge.body != '[deleted]') & (df_merge.parent_body != '[deleted]')]
+    df_merge = df_merge[(df_merge.body != 'deleted') & (df_merge.parent_body != 'deleted')]
     
     df_merge['is_popular'] = df_merge['score'].apply(lambda x: is_popular(x, 15))
 
