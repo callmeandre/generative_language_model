@@ -72,6 +72,7 @@ def _include_parents(df, db):
 
     # since some parents might already be included, drop
     comp_df = pd.concat([df, sample_parents_df]).drop_duplicates().reset_index(drop=True)
+    
     return(comp_df)
 
 def _basic_preprocessing(post):
@@ -109,27 +110,22 @@ def get_sample(nrows, db):
     # total_rows = pd.read_sql_query("SELECT COUNT(*) FROM May2015 WHERE subreddit != '' AND body != '' AND id != '';", db).iloc[0,0]
     # hardcoded to save a trip to the DB
     sample_percentage = nrows/54000000
-    
+
     sample_sql = "SELECT subreddit, ups, downs, score, body, id, name, link_id, parent_id \
                   FROM May2015 \
                   WHERE subreddit != '' AND body != '' AND id != '' AND \
                   ABS(CAST(RANDOM() AS REAL))/9223372036854775808 < {} \
                  ;".format(sample_percentage)
-    print("querying for sample")
     sample_df = pd.read_sql(sample_sql, db)
-    print("query for sample finished")
     
+    sample_df['parent_id'] = sample_df['parent_id'].apply(lambda x: re.sub(r't\d_', '', x))
+
     # make sure dataset include post parents
-    print("getting parents")
     complete_df = _include_parents(sample_df, db)
-    print("getting parents completed")
     
     # do some pre-processing
-    print("basic preprocessing")
     complete_df['body'] = complete_df['body'].apply(_basic_preprocessing)
-    print("converting parent ids")
     complete_df['parent_id'] = complete_df['parent_id'].apply(lambda x: re.sub(r't\d_', '', x))
-    print("we done")
     
     return(complete_df)
 
@@ -152,7 +148,7 @@ def remove_duplicates(df, existing_ids):
     non_dupes = ~df.id.isin(dupe_indices)
     deduped_df = df[non_dupes]
 
-    all_unique_ids = existing_indices.union(unique_ids_in_df)
+    all_unique_ids = existing_ids.union(unique_ids_in_df)
     
     return(deduped_df, all_unique_ids)
 
