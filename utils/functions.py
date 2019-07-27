@@ -170,6 +170,8 @@ def read_and_process_data(path, workDir):
 
     df_merge = df_parent.merge(df_full.drop('link_id', axis=1), on='parent_id', how='inner')
     df_merge = df_merge[(df_merge.body != '[deleted]') & (df_merge.parent_body != '[deleted]')]
+    
+    df_merge['is_popular'] = df_merge['score'].apply(lambda x: is_popular(x, 15))
 
     return df_merge
     
@@ -228,4 +230,8 @@ def ups_and_downs(df_data, ups='ups', downs='downs', cap=500):
     plt.suptitle("Comparing Polarity of Posts", y=1.03, verticalalignment='top', fontsize = 20)
     plt.tight_layout()
     
-    
+def is_popular(val, threshold):
+    if int(val) > threshold: new_val = 1
+    else: new_val = 0
+    return int(new_val)
+
