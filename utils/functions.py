@@ -203,10 +203,10 @@ def post_and_reply_length(df_data, post='parent_body', reply='body', cap=500):
 
     axs[0].hist(df_data['parent_length_cap'], bins=100, color = "royalblue")
     axs[0].title.set_text('Parent Post Length Capped at %s Words' % (cap))
-    axs[0] = add_all_percentiles([50, 75, 90, 95, 99], df_data['parent_length'], axs[0], 50, 800)
+    axs[0] = add_all_percentiles([50, 75, 90, 95, 97.5, 99], df_data['parent_length'], axs[0], 50, 800)
     axs[1].hist(df_data['length_cap'], bins=100, color = "peachpuff")
     axs[1].title.set_text('Reply Length Capped at %s Words' % (cap))
-    axs[1] = add_all_percentiles([50, 75, 90, 95, 99], df_data['length'], axs[1], 50, 800)
+    axs[1] = add_all_percentiles([50, 75, 90, 95, 97.5, 99], df_data['length'], axs[1], 50, 800)
     
     plt.suptitle("Comparing Post Word Count by Type", y=1.03, verticalalignment='top', fontsize = 20)
     plt.tight_layout()
@@ -220,10 +220,10 @@ def ups_and_downs(df_data, ups='ups', downs='downs', cap=500):
     
     axs[0].hist(df_data['ups_cap'], bins=100, color = "royalblue")
     axs[0].title.set_text('%s for Post Capped at %s Words' % (str.title(ups),cap))
-    axs[0] = add_all_percentiles([50, 75, 90, 95, 99], df_data[ups].astype(int), axs[0], 500, 2500, spacer=1)
+    axs[0] = add_all_percentiles([50, 75, 90, 95, 97.5, 99], df_data[ups].astype(int), axs[0], 500, 2500, spacer=1)
     axs[1].hist(df_data['downs_cap'], bins=100, color = "peachpuff")
     axs[1].title.set_text('%s for Post Capped at %s Words' % (str.title(downs), cap))
-    axs[1] = add_all_percentiles([50, 75, 90, 95, 99], df_data[downs].astype(int), axs[1], 500, 2500, spacer=1)
+    axs[1] = add_all_percentiles([50, 75, 90, 95, 97.5, 99], df_data[downs].astype(int), axs[1], 500, 2500, spacer=1)
     
     plt.suptitle("Comparing Polarity of Posts", y=1.03, verticalalignment='top', fontsize = 20)
     plt.tight_layout()
