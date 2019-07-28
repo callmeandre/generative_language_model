@@ -165,7 +165,7 @@ def read_and_process_data(path, workDir):
     df_parent = df_parent.rename({'body':'parent_body', 'id' : 'parent_id'}, axis='columns')
 
     df_merge = df_parent.merge(df_full.drop('link_id', axis=1), on='parent_id', how='inner')
-    df_merge = df_merge[(df_merge.body != '[deleted]') & (df_merge.parent_body != '[deleted]')]
+    df_merge = df_merge[(df_merge.body != 'deleted') & (df_merge.parent_body != 'deleted')]
     
     df_merge['is_popular'] = df_merge['score'].apply(lambda x: is_popular(x, 15))
 
@@ -190,6 +190,9 @@ def capping_length(val, length):
     return int(new_val)
 
 def post_and_reply_length(df_data, post='parent_body', reply='body', cap=500):
+    
+    df_data[post] = df_data[post].astype(str)
+    df_data[reply] = df_data[reply].astype(str)
     
     df_data['parent_length'] = df_data[post].apply(lambda x:len(x.split())) 
     df_data['length'] = df_data[reply].apply(lambda x:len(x.split())) 
@@ -230,4 +233,12 @@ def is_popular(val, threshold):
     if int(val) > threshold: new_val = 1
     else: new_val = 0
     return int(new_val)
+
+def create_labeled_data(df, text_col='parent_body', max_seq_length=150, predict_feature='is_popular'):
+  train_text = df[text_col].tolist()
+  train_text = [' '.join(t.split()[0:max_seq_length]) for t in train_text]
+  train_text = np.array(train_text, dtype=object)[:, np.newaxis]
+  train_label = df[predict_feature].tolist()
+
+  return train_text, train_label
 
