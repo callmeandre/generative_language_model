@@ -4,4 +4,5 @@ data/database.sqlite
 data/reddit_comments-may-2015.zip
 data/reddit_comments-may-2015.7z
 reddit_extracted_data.csv
+reddit_yuge_sample.csv
 .ipynb_checkpoints/
